@@ -41,7 +41,6 @@ bb = np.array(B)
 
 
 deneme = PolyhedralConicFunctions.PCFC()
-
 pcfcs = deneme.fit(A,B)
 
 for i in pcfcs:

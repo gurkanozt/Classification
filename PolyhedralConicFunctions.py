@@ -18,9 +18,11 @@ class PCF:
         model = Model()
         gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=1, name='gamma')
         ksi = model.addVar(vtype=GRB.CONTINUOUS, lb =0, name='ksi')
-        w = range(m)
+        w = range(dimension)
         for i in range(dimension):
             w[i] = model.addVar(vtype=GRB.CONTINUOUS, name='w[%s]' % i)
+
+
 
         model.update()
         errorA = {}
@@ -51,17 +53,16 @@ class PCFC:
         self.dimension=len(A[0])
         z = len(A)
         while z !=0 :
-            center = random.randint(0,len(A)-1)
+            center = random.randint(0, len(A)-1)
             temp = PCF()
             temp.setParam(A,B,center)
             self.pcfs.append(temp)
-            A = self.updateSet(A,self.pcfs[-1],center)
+            A = self.updateSet(A,self.pcfs[-1], center)
             z = len(A)
             #print 'yeni A:',A
         return self.pcfs
 
     def delete(self,lst, indices):
-
         indices = set(indices)
         return [lst[i] for i in xrange(len(lst)) if i not in indices]
 
