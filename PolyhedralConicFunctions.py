@@ -3,21 +3,29 @@ import math
 import random
 from gurobipy import *
 
-
 class PCF:
     def __init__(self):
         self.w = list()
         self.gamma = 0
         self.ksi = 0
+        self.center = list()
 
     def setParam(self, A, B, center):
-
+        # center n boyutlu vektor olarak gelsin
+        # set problem parameters dimension = number of features, m =  s(A), p = s(B)
+        self.center = center
         dimension = len(A[0])
+        #
         m = len(A)
         p = len(B)
+
+        # initialize gurobi model
         model = Model()
+
         gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=1, name='gamma')
+
         ksi = model.addVar(vtype=GRB.CONTINUOUS, lb =0, name='ksi')
+
         w = range(dimension)
         for i in range(dimension):
             w[i] = model.addVar(vtype=GRB.CONTINUOUS, name='w[%s]' % i)
@@ -30,10 +38,10 @@ class PCF:
         for i in range(m):
             errorA[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i)
             model.update()
-            model.addConstr(quicksum((A[i][j] - A[center][j]) * w[j] for j in range(dimension)) + (ksi * quicksum(math.fabs(A[i][j] - A[center][j]) for j in range(dimension))) - gamma + 1.0 <= errorA[i]  )
+            model.addConstr(quicksum((A[i][j] - center[j]) * w[j] for j in range(dimension)) + (ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(dimension))) - gamma + 1.0 <= errorA[i]  )
 
         for i in range(p):
-            model.addConstr(quicksum((B[i][j] - A[center][j]) * -w[j] for j in range(dimension)) - (ksi * quicksum(math.fabs(B[i][j] - A[center][j]) for j in range(dimension))) + gamma + 1.0 <= 0)
+            model.addConstr(quicksum((B[i][j] - center[j]) * -w[j] for j in range(dimension)) - (ksi * quicksum(math.fabs(B[i][j] - center[j]) for j in range(dimension))) + gamma + 1.0 <= 0)
 
         model.setObjective(quicksum(errorA[i] for i in errorA) / len(errorA), GRB.MINIMIZE)
         model.optimize()
@@ -47,44 +55,36 @@ class PCFC:
     def __init__(self):
         self.pcfs = list()
         self.dimension = 0
-        self.lgs = list()
+
 
     def fit(self, A, B):
         self.dimension=len(A[0])
-        z = len(A)
-        while z !=0 :
-            center = random.randint(0, len(A)-1)
+
+        while len(A) !=0 :
+            center = A[random.randint(0, len(A)-1)]
             temp = PCF()
             temp.setParam(A,B,center)
             self.pcfs.append(temp)
-            A = self.updateSet(A,self.pcfs[-1], center)
-            z = len(A)
-            #print 'yeni A:',A
+            A = self.__updateSet(A,self.pcfs[-1], center)
+
         return self.pcfs
 
-    def delete(self,lst, indices):
+    def __delete(self,lst, indices):
         indices = set(indices)
         return [lst[i] for i in xrange(len(lst)) if i not in indices]
 
-    def updateSet(self, A, pc,center):
-        deleted = []
+    def __updateSet(self, A, pc,center):
 
-        """print 'rassal index:',center
-        print 'center:', A[center]
-        print 'ksi=', pc.ksi
-        print 'gamma=',pc.gamma
-        print 'w[0]=',pc.w[0]
-        print 'w[1]=',pc.w[1]
-        print 'eski A', A"""
+        deleted = []
         for i in range(len(A)):
 
-            f = quicksum((A[i][j] - A[center][j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - A[center][j]) for j in range(self.dimension))) - pc.gamma
+            f = quicksum((A[i][j] - center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(self.dimension))) - pc.gamma
 
             if f.getValue() <= 0.0:
                 deleted.append(i)
 
+        return self.__delete(A,deleted)
 
-        return self.delete(A,deleted)
 
 
 

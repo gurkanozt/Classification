@@ -27,7 +27,6 @@ prediction = rlp.predict(X)
 
 print(parameters)
 print(rlp.predict(X))
-https://www.youtube.com/watch?v=jQaLlc3mpcQ
 print(np.mean(Y == prediction))"""
 
 
