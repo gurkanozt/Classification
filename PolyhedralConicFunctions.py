@@ -9,7 +9,7 @@ class PCF:
         self.gamma = 0
         self.ksi = 0
         self.center = list()
-
+#change
     def setParam(self, A, B, center):
         # center n boyutlu vektor olarak gelsin
         # set problem parameters dimension = number of features, m =  s(A), p = s(B)
