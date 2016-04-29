@@ -39,13 +39,17 @@ bb = np.array(B)
 
 
 
-deneme = PolyhedralConicFunctions.PCFC()
+deneme = PolyhedralConicFunctions.PCF_iterative()
 pcfcs = deneme.fit(A,B)
 
 for i in pcfcs:
-    print(i.gamma,i.ksi)
-    for j in range(len(i.w)):
-        print(i.w[j])
+    print 'PCF:' ,'gamma =',i.gamma,'ksi =', i.ksi ,'center =',i.center
+    print '     normal =',i.w
+
+
+predictions= deneme.predict(A)
+print predictions
+
 
 plt.scatter(aa[:, 0], aa[:, 1], c='b', marker='o')
 plt.scatter(bb[:, 0], bb[:, 1], c='r', marker='^')
