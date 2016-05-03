@@ -2,6 +2,7 @@ import numpy as np
 import math
 import random
 from gurobipy import *
+from operator import add
 
 class PCF:
     def __init__(self):
@@ -105,13 +106,15 @@ class PCF_movingcenter:
 
 
     def fit(self, A, B):
-        self.dimension=len(A[0])
+        self.dimension = len(A[0])
+
         while len(A) !=0 :
             center = A[random.randint(0, len(A)-1)]
             temp = PCF()
             temp.setParam(A,B,center)
+
+            A = self.__updateSet(A,temp)
             self.pcfs.append(temp)
-            A = self.__updateSet(A,self.pcfs[-1], center)
 
         return self.pcfs
 
@@ -123,26 +126,38 @@ class PCF_movingcenter:
                 #f = quicksum((X[i][j] - p.center[j]) * p.w[j] for j in range(self.dimension)) + (p.ksi * quicksum(math.fabs(X[i][j] - p.center[j]) for j in range(self.dimension))) - p.gamma
                 f = np.dot(np.subtract(X[i], p.center), p.w) + (p.ksi * np.linalg.norm((np.subtract(X[i], p.center)), 1)) - p.gamma
                 if f <= 0.0:
+                    (-1*math.copysign(1, (np.dot(self.w, X[i]) - self.gamma)))
                     predictions.append(-1)
                     break
                 else:
                     predictions.append(1)
         return predictions
 
-    def __delete(self,lst, indices):
+    def __delete(self, lst, indices):
         indices = set(indices)
         return [lst[i] for i in xrange(len(lst)) if i not in indices]
 
-    def __updateSet(self, A, pc,center):
-        deleted = []
-        for i in range(len(A)):
+    def __updateSet(self, A, pc):
+        deleted = list()
+        newcenter = np.empty(len(A[0]))
+        while np.allclose(newcenter, pc.center, rtol=0.5) != True:
+            deleted[:] = []
+            for i in range(len(A)):
+                #f = quicksum((A[i][j] - center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(self.dimension))) - pc.gamma
+                f = np.dot(np.subtract(A[i], pc.center), pc.w) + (pc.ksi * np.linalg.norm((np.subtract(A[i], pc.center)), 1)) - pc.gamma
+                if f <= 0.0:
+                    deleted.append(i)
+            newcenter = self.findcenter(A, deleted)
+            pc.center = newcenter
 
-            #f = quicksum((A[i][j] - center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(self.dimension))) - pc.gamma
-            f = np.dot(np.subtract(A[i], center), pc.w) + (pc.ksi * np.linalg.norm((np.subtract(A[i], center)), 1)) - pc.gamma
-            if f <= 0.0:
-                deleted.append(i)
-        self.__updateSet(A,pc,np.mean(deleted,0))
         return self.__delete(A,deleted)
 
+    def findcenter(self,A,cluster):
+        centervector = np.empty(len(A[0]))
+        for i in range(len(cluster)):
+          centervector = np.add(centervector,A[cluster[i]])
+
+        centervector = centervector /len(cluster)
+        return centervector/len(cluster)
 
 
