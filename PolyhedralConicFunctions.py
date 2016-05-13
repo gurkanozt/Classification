@@ -12,7 +12,6 @@ class PCF:
         self.center = list()
 #change
     def setParam(self, A, B, center):
-
         # set problem parameters dimension = number of features, m =  s(A), p = s(B)
         self.center = center
         dimension = len(A[0])
@@ -24,7 +23,7 @@ class PCF:
         model = Model()
         # define cone equation
         gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=1, name='gamma')
-        ksi = model.addVar(vtype=GRB.CONTINUOUS, lb =0, name='ksi')
+        ksi = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='ksi')
         w = range(dimension)
         for i in range(dimension):
             w[i] = model.addVar(vtype=GRB.CONTINUOUS, name='w[%s]' % i)
@@ -37,7 +36,7 @@ class PCF:
         for i in range(m):
             errorA[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i)
             model.update()
-            model.addConstr(quicksum((A[i][j] - center[j]) * w[j] for j in range(dimension)) + (ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(dimension))) - gamma + 1.0 <= errorA[i]  )
+            model.addConstr(quicksum((A[i][j] - center[j]) * w[j] for j in range(dimension)) + (ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(dimension))) - gamma + 1.0 <= errorA[i])
 
         for i in range(p):
             model.addConstr(quicksum((B[i][j] - center[j]) * -w[j] for j in range(dimension)) - (ksi * quicksum(math.fabs(B[i][j] - center[j]) for j in range(dimension))) + gamma + 1.0 <= 0)
@@ -73,14 +72,17 @@ class PCF_iterative:
 
         predictions = list()
         for i in range(len(X)):
+            f = 0
             for p in self.pcfs:
                 #f = quicksum((X[i][j] - p.center[j]) * p.w[j] for j in range(self.dimension)) + (p.ksi * quicksum(math.fabs(X[i][j] - p.center[j]) for j in range(self.dimension))) - p.gamma
                 f = np.dot(np.subtract(X[i], p.center), p.w) + (p.ksi * np.linalg.norm((np.subtract(X[i], p.center)), 1)) - p.gamma
                 if f <= 0.0:
-                    predictions.append(-1)
+                    f = -1
                     break
                 else:
-                    predictions.append(1)
+                    f = 1
+
+            predictions.append(f)
         return predictions
 
     def __delete(self,lst, indices):
@@ -89,8 +91,8 @@ class PCF_iterative:
 
     def __updateSet(self, A, pc,center):
         deleted = []
-        for i in range(len(A)):
 
+        for i in range(len(A)):
             #f = quicksum((A[i][j] - center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(self.dimension))) - pc.gamma
             f = np.dot(np.subtract(A[i], center), pc.w) + (pc.ksi * np.linalg.norm((np.subtract(A[i], center)), 1)) - pc.gamma
             if f <= 0.0:
@@ -98,7 +100,7 @@ class PCF_iterative:
 
         return self.__delete(A,deleted)
 
-
+##
 class PCF_movingcenter:
     def __init__(self):
         self.pcfs = list()
@@ -122,15 +124,16 @@ class PCF_movingcenter:
 
         predictions = list()
         for i in range(len(X)):
+            f = 0
             for p in self.pcfs:
                 #f = quicksum((X[i][j] - p.center[j]) * p.w[j] for j in range(self.dimension)) + (p.ksi * quicksum(math.fabs(X[i][j] - p.center[j]) for j in range(self.dimension))) - p.gamma
                 f = np.dot(np.subtract(X[i], p.center), p.w) + (p.ksi * np.linalg.norm((np.subtract(X[i], p.center)), 1)) - p.gamma
                 if f <= 0.0:
-                    (-1*math.copysign(1, (np.dot(self.w, X[i]) - self.gamma)))
-                    predictions.append(-1)
+                    f = -1
                     break
                 else:
-                    predictions.append(1)
+                    f = 1
+            predictions.append(f)
         return predictions
 
     def __delete(self, lst, indices):
@@ -138,26 +141,33 @@ class PCF_movingcenter:
         return [lst[i] for i in xrange(len(lst)) if i not in indices]
 
     def __updateSet(self, A, pc):
-        deleted = list()
-        newcenter = np.empty(len(A[0]))
-        while np.allclose(newcenter, pc.center, rtol=0.5) != True:
-            deleted[:] = []
-            for i in range(len(A)):
-                #f = quicksum((A[i][j] - center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(self.dimension))) - pc.gamma
-                f = np.dot(np.subtract(A[i], pc.center), pc.w) + (pc.ksi * np.linalg.norm((np.subtract(A[i], pc.center)), 1)) - pc.gamma
-                if f <= 0.0:
-                    deleted.append(i)
-            newcenter = self.findcenter(A, deleted)
+        deleted = self.findcluster(A,pc.center,pc.w,pc.ksi, pc.gamma)
+        newcenter = self.findcenter(A,deleted)
+        while np.allclose(newcenter, pc.center, rtol=0.5) != True :
             pc.center = newcenter
+            deleted = self.findcluster(A,pc.center,pc.w,pc.ksi, pc.gamma)
+            newcenter = self.findcenter(A, deleted)
 
+
+        pc.center = newcenter
         return self.__delete(A,deleted)
+
+    def findcluster(self,A,thecenter,w,ksi,gamma):
+        deleted = list()
+        for i in range(len(A)):
+            #f = quicksum((A[i][j] - pc.center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - pc.center[j]) for j in range(self.dimension))) - pc.gamma
+
+
+            f = np.dot(np.subtract(A[i], thecenter), w) + (ksi * np.linalg.norm((np.subtract(A[i], thecenter)), 1)) - gamma
+            if f <= 0.0:
+                deleted.append(i)
+        return deleted
 
     def findcenter(self,A,cluster):
         centervector = np.empty(len(A[0]))
         for i in range(len(cluster)):
           centervector = np.add(centervector,A[cluster[i]])
 
-        centervector = centervector /len(cluster)
         return centervector/len(cluster)
 
 
