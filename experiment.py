@@ -1,4 +1,5 @@
 import csv
+import  math
 import RobustLinearProgramming
 import PolyhedralConicFunctions
 import numpy as np
@@ -21,7 +22,7 @@ print(Y)
 
 rlp = RobustLinearProgramming.RLP()
 
-parameters = rlp.fit(X,Y,'10FCV')
+parameters = rlp.fit(X,Y)
 
 prediction = rlp.predict(X)
 
@@ -29,7 +30,7 @@ print(parameters)
 print(rlp.predict(X))
 print(np.mean(Y == prediction))"""
 
-
+"""
 A = [[-2.0, 0.5], [-2.0, -0.5], [-2.0, 2.0], [-2.0, -2.0], [-0.5, 2.0], [-0.5, -2.0], [0.5, 2.0], [0.5, -2.0], [2.0, 0.5], [2.0, -2.0], [2.0, -0.5], [2.0, 2.0], [12.0, 2.0], [12.0, -2.0], [12.0, 0.5], [12.0, -0.5], [13.5, 2.0], [13.5, -2.0], [14.5, 2.0], [14.5, -2.0], [16.0, -0.5], [16.0, 0.5], [16.0, 2.0], [16.0, -2.0]]
 aa = np.array(A)
 B = [[8.0, -6.0], [6.0, -1.0], [20.0, 6.0], [6.0, -6.0], [15.0, 6.0], [20.0, 1.0], [1.0, 6.0], [-1.0, 6.0], [-6.0, 1.0], [20.0, -6.0], [-6.0, -1.0], [-6.0, -6.0], [8.0, -1.0], [13.0, 6.0], [20.0, -1.0], [6.0, 1.0], [15.0, -6.0], [13.0, -6.0], [8.0, 1.0], [-1.0, -6.0], [-6.0, 6.0], [6.0, 6.0], [8.0, 6.0], [1.0, -6.0]]
@@ -53,5 +54,20 @@ print predictions
 
 plt.scatter(aa[:, 0], aa[:, 1], c='b', marker='o')
 plt.scatter(bb[:, 0], bb[:, 1], c='r', marker='^')
-plt.show()
+plt.show()"""
 
+
+def epslon(a,vo):
+    eps = list()
+    tempvo = -1*a * vo
+    print  tempvo
+    for i in range(5):
+        eps.append(math.exp(tempvo[i]))
+
+    return eps
+
+raw= np.zeros(5)
+for i in range(5):
+    raw[i]=i
+
+print np.dot( epslon(5,raw),raw)

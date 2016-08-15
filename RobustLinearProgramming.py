@@ -8,11 +8,11 @@ class RLP:
         self.w = list()
         self.gamma=0
 
-    def fit(self, X, Y, method):
+    def fit(self, X, Y):
         m = len(X)
         dimension = len(X[0])
 
-        model = Model(method)
+        model = Model()
         gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='gamma')
         w = range(dimension)
         for i in range(dimension):
