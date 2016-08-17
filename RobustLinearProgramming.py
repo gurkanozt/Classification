@@ -8,9 +8,9 @@ class RLP:
         self.w = list()
         self.gamma=0
 
-    def fit(self, X, Y):
-        m = len(X)
-        dimension = len(X[0])
+    def fit(self, A, B):
+
+        dimension = len(A[0])
 
         model = Model()
         gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='gamma')
@@ -21,16 +21,14 @@ class RLP:
         model.update()
         errorA = {}
         errorB = {}
-        for i in range(m):
-            if Y[i] == 1.0:
-                errorA[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i)
-                model.update()
-                model.addConstr(quicksum(X[i][j] * w[j] for j in range(dimension)) - gamma + 1.0 <= errorA[i])
-
-            else:
-                errorB[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i)
-                model.update()
-                model.addConstr(quicksum(-X[i][r] * w[r] for r in range(dimension)) + gamma + 1.0 <= errorB[i])
+        for i in range(len(A)):
+             errorA[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i)
+             model.update()
+             model.addConstr(quicksum(A[i][j] * w[j] for j in range(dimension)) - gamma + 1.0 <= errorA[i])
+        for i in range( len(B)):
+             errorB[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i)
+             model.update()
+             model.addConstr(quicksum(-B[i][r] * w[r] for r in range(dimension)) + gamma + 1.0 <= errorB[i])
 
         model.setObjective(quicksum(errorA[i] for i in errorA) / len(errorA) +
                            quicksum(errorB[i] for i in errorB) / len(errorB), GRB.MINIMIZE)
@@ -39,6 +37,8 @@ class RLP:
         self.gamma = gamma.X
         for i in range(dimension):
             self.w.append(w[i].X)
+
+
 
         return self.gamma, self.w
 
