@@ -7,7 +7,7 @@ from gurobipy import *
     -Seperation via polyhedral conic functions, Gasimov and Ozturk, 2006
     -Implementation includes two classes PCF and PCF_iterative.
     -PCF solves part of the defined problem and returns only one conic function for given A,B datasets and a random center.
-    -PCF_iterative  solves hole problem in a iterative way as described in the paper and returns sets of conic functions.
+    -PCF_iterative  solves whole problem in a iterative way as described in the paper and returns sets of conic functions.
     -To execute this algortihm Gurobi solver and gurobi.py are required
      http://www.gurobi.com/
      https://www.gurobi.com/documentation/6.5/quickstart_mac/the_gurobi_python_interfac.html
