@@ -1,131 +1,101 @@
 import numpy as np
 import math
 from gurobipy import *
-import  random
+import random
+"""
+    -Feature Selection via Mathematical Programming, Bradley et al. , 1997
+    -In this paper there are three algorithms named as FSS, FSV and FSB but only implemented algorithm is the FSV.
+    -To execute this algortihm Gurobi solver and gurobi.py are required
+     http://www.gurobi.com/
+     https://www.gurobi.com/documentation/6.5/quickstart_mac/the_gurobi_python_interfac.html
 
+    Implementation notes:
+      a -> alfa
+      l -> lambda
+      a,l parameters are set 0.5 and 0.7 as default. To see a review of FSV algorithm please look "Use of Zero-Norm with Linear Models and Kernel Methods" "Weston et. al"
+      A,B  the datasets belong different classes
+
+"""
 class FSV:
-    def __init__(self):
-        self.w = list()
-        self.v=list()
-        self.gamma= 0
-        self.a = 5
-        self.l = 0.8
-        self.vo =list()
-        self.dimension = 0
-        self.y = list()
-        self.z  = list()
 
-    def solve(self, A,B,a,l,w,g,y,z,v):
-        self.a = a
-        self.l = l
-        self.vo =v
+  def __init__(self):
 
-        self.dimension = len(A[0])
+      self.a = 0
+      self.l = 0.7
+      self.dimension = 0
+      self.gamma = 0
+      self.w = list()
+      self.y = list()
+      self.z = list()
+      self.v = list()
 
-        model = Model()
+  def fit(self, A, B, a=0.5, l=0.7):
+    # dimension = number of features
+      self.dimension = A[0]
+    #set random starting parameters
+      self.w = np.random.rand(self.dimension)
+      self.gamma= np.random.rand(1)
+      self.y = np.random.rand(self.dimension)
+      self.z = np.random.rand(self.dimension)
+      self.v = np.random.rand(self.dimension)
 
-        gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='gamma')
-        w = range(self.dimension)
-        for i in range(self.dimension):
-            w[i] = model.addVar(vtype=GRB.CONTINUOUS, name='w[%s]' % i)
+    #solve the problem for given parameters
+      parameters = self.__solveModel(A, B)
+    #untill the equaiton 17 holds (equation 17 from the  paper)
+      while self.__check(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]) != True:
+        self.w = parameters[0]
+        self.gamma = parameters[1]
+        self.y = parameters[2]
+        self.z = parameters[3]
+        self.v = parameters[4]
+        parameters = self.solveModel(A,B)
 
-        v = range(self.dimension)
-        for i in range(self.dimension):
-            v[i]=model.addVar(vtype=GRB.CONTINUOUS, name='v[%s]' % i)
+      return self.w, self.gamma, self.y, self.z, self.v
 
-        model.update()
-        for i in range(self.dimension):
-            model.addConstr(w[i]<=v[i])
-            model.addConstr(w[i]>= -v[i])
-        model.update()
 
-        errorA = {}
-        errorB = {}
-
-        for i in range(len(A)):
-            errorA[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i)
-            model.update()
-            model.addConstr(quicksum(A[i][j] * w[j] for j in range(self.dimension)) - gamma + 1.0 <= errorA[i])
-        for i in range(len(B)):
-          errorB[i] = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i)
+  def __solveModel(self, A, B):
+      #create a gurobi model
+      model = Model()
+      #add the gamma variable to the model
+      gamma = model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='gamma')
+      w = list()
+      v = list()
+      #add n dimensional w and v variables
+      for i in range(self.dimension):
+          w.append(model.addVar(vtype=GRB.CONTINUOUS, name='w[%s]' % i))
+          v.append(model.addVar(vtype=GRB.CONTINUOUS, name='v[%s]' % i))
+      #update the model to use them in constraints
+      model.update()
+      #add v constraints
+      model.addConstr(-v[i] <= w[i]for i in range(self.dimension))
+      model.addConstr(w[i] <= v[i] for i in range(self.dimension))
+      model.update()
+      errorA = list()
+      errorB = list()
+      #add error variables and constraints
+      for i in range(len(A)):
+          errorA.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i))
           model.update()
-          model.addConstr(quicksum(-B[i][r] * w[r] for r in range(self.dimension)) + gamma + 1.0 <= errorB[i])
+          model.addConstr(quicksum(A[i][j] * w[j] for j in range(self.dimension)) - self.gamma + 1.0 <= errorA[i])
+      for i in range(len(B)):
+          errorB.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i))
+          model.update()
+          model.addConstr(quicksum(-B[i][r] * w[r] for r in range(self.dimension)) + self.gamma + 1.0 <= errorB[i])
+      #t1 and t2 are  parts of objective function
+      t1 = (1-self.l)*(np.dot(np.ones(len(self.y)),self.y)/len(self.y)+ np.dot(np.ones(len(self.z),self.z))/len(self.z) )
+      t2 = self.l*self.a*(np.dot(self.__exp(), np.subtract(v,self.v)))
+      #set the objective function
+      model.setObjective(t1+t2, GRB.MINIMIZE)
 
-        eps = self.epslon()
-        model.setObjective((1-self.l)*(quicksum(errorA[i] for i in errorA) / len(errorA) +
-                           quicksum(errorB[i] for i in errorB) / len(errorB)) + self.l*self.a*(np.dot(eps,np.subtract(v - self.vo))), GRB.MINIMIZE)
+      model.optimize()
+      #return all wariables in same oder the paper
+      return [w[i].X for i in range(self.dimension)], gamma.X ,[errorA[i].X for i in range(len(errorA))], [errorB[i].X for i in range(len(errorB))], [v[i].X for i in range(self.dimension)]
+  #this function checks if it is hold or not equation 17 from the paper
+  def __check(self,wi,gi,yi,zi,vi):
+      temp1 = (1-self.l)*(np.dot(np.ones(len(yi)),np.subtract(yi-self.y))/len(self.y) +np.dot(np.ones(len(zi),np.subtract(zi,self.z)))/len(self.z))
+      temp2 = self.l*self.a*(np.dot(self.__exp(), np.subtract(vi,self.v)))
+      return temp1==temp2
+  #this function retuns exponantial values of v
+  def __exp(self):
 
-        model.optimize()
-        self.gamma = gamma.X
-        for i in range(self.dimension):
-            self.w.append(w[i].X)
-            self.v[v[i].X]
-
-        for i in range(len(A)):
-            self.y.append(errorA[i].X)
-
-        for i in range(len(B)):
-            self.z.append(errorB[i].X)
-
-        return self.w, self.gamma, self.y, self.z, self.v
-
-    def epslon(self):
-         eps = list()
-         tempvo   =  -1*self.a*self.vo
-         for i in range(self.dimension):
-           eps.append(math.exp(tempvo[i]))
-
-         return eps
-
-class FSV_iterate:
-    def __init__(self):
-        self.dimension = 0
-        self.w = list()
-        self.gamma = 0
-        self.a = 5
-        self.l = 0.7
-        self.y = list()
-        self .z = list()
-        self.v= list()
-
-    def fit(self,A,B,a=5,l=0.7,rndm = True,*args):
-        self.a = a
-        self.l = l
-        self.dimension =  len(A[0])
-        tempFsv = FSV()
-        if rndm:
-            self.w = np.random.rand(self.dimension)
-            self.gamma =  random.random()
-            self.y = np.random.rand(len(A))
-            self.z = np.random.rand(len(B))
-            self.v = np.random.rand(self.dimension)
-        else :
-            self.w = args[0]
-            self.gamma = args[1]
-            self.y = args[2]
-            self.z = args[3]
-            self.v = args[4]
-
-        parameters = tempFsv.solve(A, B, self.a, self.l, self.w, self.gamma, self.y, self.z, self.v)
-        while self.checkZero(self.y, self.z, self.v, parameters[2], parameters[3], parameters[4] ) == False :
-            self.w = parameters[0]
-            self.gamma = parameters[1]
-            self.y = parameters[2]
-            self.z = parameters [3]
-            self.v = parameters [4]
-            parameters = tempFsv.solve(A, B, self.a, self.l, self.w, self.gamma, self.y, self.z, self.v)
-        return parameters
-
-    def checkZero(self, y, z, v, yi, zi, vi ):
-         result = False
-         t = (1-self.l)*(np.dot(np.ones(len(y)), np.subtract(yi,y))/len(y)+ np.dot(np.ones(len(z)),np.subtract(zi,z))/len(z))+self.l*self.a*np.dot(self.epslon(v),np.subtract(vi,v))
-         if t == 0:
-             result = True
-         return result
-
-    def epslon(self,vo):
-        eps = list()
-        tempvo = -1 * self.a * vo
-        for i in range(self.dimension):
-            eps.append(math.exp(tempvo[i]))
-        return eps
+       return [math.expm1(-1*i) for i in self.v]

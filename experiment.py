@@ -4,9 +4,39 @@ import RobustLinearProgramming
 import PolyhedralConicFunctions
 import numpy as np
 import matplotlib.pyplot as plt
+import FSV
+"""
+f = open('CCI2000.txt')
+data = []
+for line in f:
+    row = []
+    line = line.split(' ')
+    if len(line) != 1:
+        for i in line:
+            row.append(float(i))
+        data.append(row)
+
+data = list(map(list, zip(*data)))
+
+A = []
+B = []
+f = open('I2000Label.txt')
+index = 0
+for line in f:
+    if float(line)<0:
+        A.append(data[index])
+    else:
+        B.append(data[index])
+    index += 1
+
+fsv = FSV.FSV_iterate()
+
+parameters = fsv.fit(A,B,rndm=True,a=0.5, l= 0.7)"""
+
+
+""
 dosya = open("iris.csv","rb")
 reader = csv.reader(dosya, quotechar=',')
-
 data = []
 A = []
 B = []
