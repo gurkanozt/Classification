@@ -7,5 +7,5 @@ Implemented algorithms and related papers:
     * Seperation via polyhedral conic functions, Gasimov and Ozturk, 2006
 #Usage
 experiment.py file includes examples for each algorithm. 
-To work on these algorithms Gurobi solver and gurobi.py are required. If you are a student or an academic researcher can get a full Gurobi licence for free.  
+To work on these algorithms Gurobi solver and gurobi.py are required. Gurobi licence is free for students and academic researchers.
 [Gurobi website](http://www.gurobi.com/ "Gurobi")
