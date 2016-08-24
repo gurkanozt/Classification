@@ -8,7 +8,7 @@ import PolyhedralConicFunctions
 #import FSV
 import PCF_MovingCenter
 
-#RLP predictions are always -1 or 1 but some datasets have different labels. This function converts labels
+#RLP predictions  are always -1 or 1 but some datasets have different labels. This function converts labels
 def convertLabels(labelData, l1, l2):
     lbls = np.zeros(len(labelData))
     for i in range(len(labelData)):

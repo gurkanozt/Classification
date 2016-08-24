@@ -42,7 +42,7 @@ class RLP:
                  errorB.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i))
                  model.update()
                  model.addConstr(quicksum(-X[i][j] * w[j] for j in range(dimension)) + gamma + 1.0 <= errorB[len(errorB)-1])
-        #set obective function
+        #set obective  function
         model.setObjective(quicksum(i for i in errorA) / len(errorA) +
                            quicksum(i for i in errorB) / len(errorB), GRB.MINIMIZE)
 
