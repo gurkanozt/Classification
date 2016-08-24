@@ -16,6 +16,7 @@ from gurobipy import *
 
 class PCF:
     def __init__(self):
+        # type: () -> object
         self.w = list()
         self.gamma = 0
         self.ksi = 0
@@ -100,7 +101,7 @@ class PCF_iterative:
         deleted = []
 
         for i in range(len(A)):
-            #f = quicksum((A[i][j] - center[j]) * pc.w[j] for j in range(self.dimension)) + (pc.ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(self.dimension))) - pc.gamma
+
             f = np.dot(np.subtract(A[i], center), pc.w) + (pc.ksi * np.linalg.norm((np.subtract(A[i], center)), 1)) - pc.gamma
             if f <= 0.0:
                 deleted.append(i)

@@ -14,11 +14,11 @@ from gurobipy import *
 class RLP:
     def __init__(self):
         self.w = list()
-        self.gamma=0
+        self.gamma = 0
 
-    def fit(self, A, B):
+    def fit(self, X, Y, lb1, lb2):
         # dimension = number of features
-        dimension = len(A[0])
+        dimension = len(X[0])
 
         #create a gurobi model
         model = Model()
@@ -33,14 +33,15 @@ class RLP:
         errorA = list()
         errorB = list()
         #add error variables and constraints
-        for i in range(len(A)):
-             errorA.append( model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i))
-             model.update()
-             model.addConstr(quicksum(A[i][j] * w[j] for j in range(dimension)) - gamma + 1.0 <= errorA[i])
-        for i in range(len(B)):
-             errorB.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i))
-             model.update()
-             model.addConstr(quicksum(-B[i][r] * w[r] for r in range(dimension)) + gamma + 1.0 <= errorB[i])
+        for i in range(len(X)):
+            if Y[i] == lb1:
+                 errorA.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i))
+                 model.update()
+                 model.addConstr(quicksum(X[i][j] * w[j] for j in range(dimension)) - gamma + 1.0 <= errorA[len(errorA)-1])
+            elif Y[i] == lb2:
+                 errorB.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i))
+                 model.update()
+                 model.addConstr(quicksum(-X[i][j] * w[j] for j in range(dimension)) + gamma + 1.0 <= errorB[len(errorB)-1])
         #set obective function
         model.setObjective(quicksum(i for i in errorA) / len(errorA) +
                            quicksum(i for i in errorB) / len(errorB), GRB.MINIMIZE)
