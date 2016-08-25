@@ -1,6 +1,6 @@
 # Classification 
 #Intro
-This is a Python 2.7 and Gurobi implementation of some Feature Selection and Classification algorithms.  
+This is a Python 2.7 and Gurobi implementation of optimization based classification algorithms.  
 Implemented algorithms and related papers:  
     * Robust Linear Programming Discrimination of Two Linearly Inseperable Sets, Bennet and Mangasarian, 1992  
     * Seperation via polyhedral conic functions, Gasimov and Ozturk, 2006
