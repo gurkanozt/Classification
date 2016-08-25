@@ -6,6 +6,6 @@ Implemented algorithms and related papers:
     * Feature Selection via Mathematical Programming, Bradley et al. , 1997  
     * Seperation via polyhedral conic functions, Gasimov and Ozturk, 2006
 #Usage
-experiment.py file includes examples for each algorithm. 
-To work on these algorithms Gurobi solver and gurobi.py are required. Gurobi licence is free for students and academic researchers.
-[Gurobi website](http://www.gurobi.com/ "Gurobi")
+examples.py file includes examples for each algorithm. 
+To work on these algorithms Gurobi solver, gurobi.py and [scikit-learn](http://scikit-learn.org/stable/ "sckitlearn") are required. Gurobi licence is free for students and academic researchers.
+
