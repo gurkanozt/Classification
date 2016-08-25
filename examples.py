@@ -7,7 +7,7 @@ import PolyhedralConicFunctions
 
 
 """"
-    #Polyhedral Conic Functions Example
+    # Polyhedral Conic Functions Example
 # PCF algorithm requires both data clusters
 # This function seperates data to clusters according to their labels
 def seperatetoAB(data, labels, indexes):
