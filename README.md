@@ -1,4 +1,4 @@
-# Feature Selection and Classification 
+# Classification 
 #Intro
 This is a Python 2.7 and Gurobi implementation of some Feature Selection and Classification algorithms.  
 Implemented algorithms and related papers:  
