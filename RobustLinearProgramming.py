@@ -34,11 +34,11 @@ class RLP:
         errorB = list()
         #add error variables and constraints
         for i in range(len(X)):
-            if Y[i] == lb1:
+            if Y[i] == 1:
                  errorA.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i))
                  model.update()
                  model.addConstr(quicksum(X[i][j] * w[j] for j in range(dimension)) - gamma + 1.0 <= errorA[len(errorA)-1])
-            elif Y[i] == lb2:
+            elif Y[i] == -1:
                  errorB.append(model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorB[%s]' % i))
                  model.update()
                  model.addConstr(quicksum(-X[i][j] * w[j] for j in range(dimension)) + gamma + 1.0 <= errorB[len(errorB)-1])

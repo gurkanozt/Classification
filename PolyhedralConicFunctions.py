@@ -46,12 +46,12 @@ class PCF:
         for i in range(m):
             errorA.append( model.addVar(vtype=GRB.CONTINUOUS, lb=0, name='errorA[%s]' % i))
             model.update()
-            model.addConstr(quicksum((A[i][j] - center[j]) * w[j] for j in range(dimension)) + (ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(dimension))) - gamma + 1.0 <= errorA[i])
+            model.addConstr(quicksum((A[i][j] - center[j]) * w[j] for j in range(dimension)) + (ksi * quicksum(math.fabs(A[i][j] - center[j]) for j in range(dimension))) - gamma + 1.0 <= errorA[len(errorA)-1])
 
         for i in range(p):
             model.addConstr(quicksum((B[i][j] - center[j]) * -w[j] for j in range(dimension)) - (ksi * quicksum(math.fabs(B[i][j] - center[j]) for j in range(dimension))) + gamma + 1.0 <= 0)
         #set objective function
-        model.setObjective(quicksum(errorA[i] for i in errorA) / len(errorA), GRB.MINIMIZE)
+        model.setObjective(quicksum(i for i in errorA) / len(errorA), GRB.MINIMIZE)
         #solve problem
         model.optimize()
         #get optimized parameters
