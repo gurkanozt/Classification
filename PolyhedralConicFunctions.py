@@ -11,6 +11,8 @@ from gurobipy import *
     -To execute this algortihm Gurobi solver and gurobi.py are required
      http://www.gurobi.com/
      https://www.gurobi.com/documentation/6.5/quickstart_mac/the_gurobi_python_interfac.html
+     
+     gurkan yorum deneme
 """
 
 
