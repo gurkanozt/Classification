@@ -9,6 +9,10 @@ from gurobipy import *
      https://www.gurobi.com/documentation/6.5/quickstart_mac/the_gurobi_python_interfac.html
 
      A,B  the datasets belong different classes
+
+     deneme Gurkan Ozturk
+
+     asdfas 
 """
 
 class RLP:
